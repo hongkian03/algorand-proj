@@ -59,6 +59,6 @@ class GetMoney(ARC4Contract):
             asset_receiver=Global.current_application_address,
         ).submit()
 
-    # NOTE: Oracle-based redeem omitted in hackathon build for simplicity
+
 
 
