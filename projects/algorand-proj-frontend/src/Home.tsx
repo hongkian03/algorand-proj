@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import ConnectWallet from './components/ConnectWallet'
 import Transact from './components/Transact'
 import AppCalls from './components/AppCalls'
-
+import IMAGE from "./assets/a.png"
 interface HomeProps {}
 
 const Home: React.FC<HomeProps> = () => {
@@ -30,14 +30,17 @@ const Home: React.FC<HomeProps> = () => {
       <div className="hero-content text-center rounded-lg p-6 max-w-md bg-white mx-auto">
         <div className="max-w-md">
           <h1 className="text-4xl">
-            Welcome to <div className="font-bold">AlgoKit 🙂</div>
+
+            <img src={IMAGE} style = {{width:340,}} />
           </h1>
           <p className="py-6">
-            This starter has been generated using official AlgoKit React template. Refer to the resource below for next steps.
+            Earn your PayDay sooner than expected! Whether you're a creator, freelancer or just getting paid in general, 
+            PadDay eliminates the time delay seperating you from your check instantly!
           </p>
 
           <div className="grid">
             <a
+            style = {{borderRadius: "10px", border:"none", outline:"none", display:"none"}}
               data-test-id="getting-started"
               className="btn btn-primary m-2"
               target="_blank"

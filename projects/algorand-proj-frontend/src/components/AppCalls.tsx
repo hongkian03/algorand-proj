@@ -69,7 +69,7 @@ const AppCalls = ({ openModal, setModalState }: AppCallsInterface) => {
   }
 
   return (
-    <dialog id="appcalls_modal" className={`modal ${openModal ? 'modal-open' : ''} bg-slate-200`}>
+    <dialog id="appcalls_modal" className={`modal ${openModal ? 'modal-open' : ''} bg-slate-200`} style = {{ height:"100vh", width:"100vw", alignContent:"center"}}>
       <form method="dialog" className="modal-box">
         <h3 className="font-bold text-lg">Say hello to your Algorand smart contract</h3>
         <br />
