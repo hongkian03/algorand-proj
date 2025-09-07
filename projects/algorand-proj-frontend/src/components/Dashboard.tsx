@@ -3,7 +3,7 @@ import { useWallet } from '@txnlab/use-wallet-react'
 import { useSnackbar } from 'notistack'
 import { AlgorandClient } from '@algorandfoundation/algokit-utils'
 import { getAlgodConfigFromViteEnvironment, getIndexerConfigFromViteEnvironment } from '../utils/network/getAlgoClientConfigs'
-import { getAssetDecimals } from '../utils/asa'
+import { getAccountAssetHolding, getAssetDecimals } from '../utils/asa'
 
 interface DashboardProps {
     openModal: boolean
@@ -53,13 +53,9 @@ const Dashboard = ({ openModal, setModalState }: DashboardProps) => {
             if (/^\d+$/.test(assetId.trim())) {
                 const id = Number(assetId)
                 const decimals = await getAssetDecimals(algorand, id)
-                const holding = (acct.assets ?? []).find((a: any) => a['asset-id'] === id)
-                if (holding) {
-                    const amt = Number(holding.amount ?? 0)
-                    setAsaBalance((amt / 10 ** decimals).toFixed(decimals))
-                } else {
-                    setAsaBalance('0')
-                }
+                const { amount } = await getAccountAssetHolding(algorand, activeAddress, id)
+                const asNumber = Number(amount)
+                setAsaBalance((asNumber / 10 ** decimals).toFixed(decimals))
 
                 // Recent ASA transfers
                 try {
@@ -97,6 +93,7 @@ const Dashboard = ({ openModal, setModalState }: DashboardProps) => {
         }
         setLoading(false)
     }
+
 
     useEffect(() => {
         if (openModal) {
@@ -138,7 +135,7 @@ const Dashboard = ({ openModal, setModalState }: DashboardProps) => {
                     </ul>
                 </div>
                 <div className="modal-action">
-                    <button className="btn" onClick={() => setModalState(!openModal)}>Close</button>
+                    <button type="button" className="btn" onClick={() => setModalState(!openModal)}>Close</button>
                 </div>
             </form>
         </dialog>
