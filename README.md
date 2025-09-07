@@ -5,6 +5,10 @@ A scaleable payment solution for individual merchants on all platforms.
 
 ## Demo Video
 
+https://github.com/user-attachments/assets/f6372671-3048-4430-bf75-b7852634a157
+
+
+
 ## Screenshots
 
 ## How It Works
