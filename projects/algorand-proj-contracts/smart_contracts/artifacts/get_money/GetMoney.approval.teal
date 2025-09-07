@@ -1,0 +1,375 @@
+#pragma version 10
+#pragma typetrack false
+
+// algopy.arc4.ARC4Contract.approval_program() -> uint64:
+main:
+    intcblock 0 1 4
+    bytecblock "admin" "asset_id" "oracle_pk"
+    // smart_contracts/get_money/contract.py:5
+    // class GetMoney(ARC4Contract):
+    txn NumAppArgs
+    bz main_after_if_else@12
+    pushbytess 0xddb7181c 0x72e2b8b7 0x709b80a8 0x887733c3 0xa14dc416 0x034d4f7a // method "init(byte[],uint64)void", method "set_oracle(byte[])void", method "set_asset(uint64)void", method "sweep(account)void", method "release_simple(account,uint64)void", method "opt_in_asset()void"
+    txna ApplicationArgs 0
+    match main_init_route@3 main_set_oracle_route@4 main_set_asset_route@5 main_sweep_route@6 main_release_simple_route@7 main_opt_in_asset_route@8
+
+main_after_if_else@12:
+    // smart_contracts/get_money/contract.py:5
+    // class GetMoney(ARC4Contract):
+    intc_0 // 0
+    return
+
+main_opt_in_asset_route@8:
+    // smart_contracts/get_money/contract.py:51-52
+    // # App opt-in to configured ASA so it can hold a balance
+    // @abimethod
+    txn OnCompletion
+    !
+    assert // OnCompletion is not NoOp
+    txn ApplicationID
+    assert // can only call when not creating
+    callsub opt_in_asset
+    intc_1 // 1
+    return
+
+main_release_simple_route@7:
+    // smart_contracts/get_money/contract.py:40-41
+    // # simple admin-controlled release for demo/hackathon
+    // @abimethod
+    txn OnCompletion
+    !
+    assert // OnCompletion is not NoOp
+    txn ApplicationID
+    assert // can only call when not creating
+    // smart_contracts/get_money/contract.py:5
+    // class GetMoney(ARC4Contract):
+    txna ApplicationArgs 1
+    btoi
+    txnas Accounts
+    txna ApplicationArgs 2
+    btoi
+    // smart_contracts/get_money/contract.py:40-41
+    // # simple admin-controlled release for demo/hackathon
+    // @abimethod
+    callsub release_simple
+    intc_1 // 1
+    return
+
+main_sweep_route@6:
+    // smart_contracts/get_money/contract.py:27-28
+    // # clear remaining funds from the contract
+    // @abimethod
+    txn OnCompletion
+    !
+    assert // OnCompletion is not NoOp
+    txn ApplicationID
+    assert // can only call when not creating
+    // smart_contracts/get_money/contract.py:5
+    // class GetMoney(ARC4Contract):
+    txna ApplicationArgs 1
+    btoi
+    txnas Accounts
+    // smart_contracts/get_money/contract.py:27-28
+    // # clear remaining funds from the contract
+    // @abimethod
+    callsub sweep
+    intc_1 // 1
+    return
+
+main_set_asset_route@5:
+    // smart_contracts/get_money/contract.py:21-22
+    // # set the asset (ASA) id
+    // @abimethod
+    txn OnCompletion
+    !
+    assert // OnCompletion is not NoOp
+    txn ApplicationID
+    assert // can only call when not creating
+    // smart_contracts/get_money/contract.py:5
+    // class GetMoney(ARC4Contract):
+    txna ApplicationArgs 1
+    btoi
+    // smart_contracts/get_money/contract.py:21-22
+    // # set the asset (ASA) id
+    // @abimethod
+    callsub set_asset
+    intc_1 // 1
+    return
+
+main_set_oracle_route@4:
+    // smart_contracts/get_money/contract.py:15-16
+    // # set the oracle public key
+    // @abimethod
+    txn OnCompletion
+    !
+    assert // OnCompletion is not NoOp
+    txn ApplicationID
+    assert // can only call when not creating
+    // smart_contracts/get_money/contract.py:5
+    // class GetMoney(ARC4Contract):
+    txna ApplicationArgs 1
+    extract 2 0
+    // smart_contracts/get_money/contract.py:15-16
+    // # set the oracle public key
+    // @abimethod
+    callsub set_oracle
+    intc_1 // 1
+    return
+
+main_init_route@3:
+    // smart_contracts/get_money/contract.py:6-7
+    // # creation method
+    // @abimethod(create="require")
+    txn OnCompletion
+    !
+    assert // OnCompletion is not NoOp
+    txn ApplicationID
+    !
+    assert // can only call when creating
+    // smart_contracts/get_money/contract.py:5
+    // class GetMoney(ARC4Contract):
+    txna ApplicationArgs 1
+    extract 2 0
+    txna ApplicationArgs 2
+    btoi
+    // smart_contracts/get_money/contract.py:6-7
+    // # creation method
+    // @abimethod(create="require")
+    callsub init
+    intc_1 // 1
+    return
+
+
+// smart_contracts.get_money.contract.GetMoney.init(oracle_pubkey: bytes, usdt_asset_id: uint64) -> void:
+init:
+    // smart_contracts/get_money/contract.py:6-8
+    // # creation method
+    // @abimethod(create="require")
+    // def init(self, oracle_pubkey: Bytes, usdt_asset_id: UInt64) -> None:
+    proto 2 0
+    // smart_contracts/get_money/contract.py:9-10
+    // # store admin and initial config
+    // self.admin = Txn.sender
+    bytec_0 // "admin"
+    txn Sender
+    app_global_put
+    // smart_contracts/get_money/contract.py:11
+    // self.oracle_pk = oracle_pubkey
+    bytec_2 // "oracle_pk"
+    frame_dig -2
+    app_global_put
+    // smart_contracts/get_money/contract.py:12
+    // self.asset_id = usdt_asset_id
+    bytec_1 // "asset_id"
+    frame_dig -1
+    app_global_put
+    // smart_contracts/get_money/contract.py:13
+    // self.paused = UInt64(0)
+    pushbytes "paused"
+    intc_0 // 0
+    app_global_put
+    retsub
+
+
+// smart_contracts.get_money.contract.GetMoney.set_oracle(new_key: bytes) -> void:
+set_oracle:
+    // smart_contracts/get_money/contract.py:15-17
+    // # set the oracle public key
+    // @abimethod
+    // def set_oracle(self, new_key: Bytes) -> None:
+    proto 1 0
+    // smart_contracts/get_money/contract.py:18
+    // assert Txn.sender == self.admin
+    txn Sender
+    intc_0 // 0
+    bytec_0 // "admin"
+    app_global_get_ex
+    assert // check self.admin exists
+    ==
+    assert
+    // smart_contracts/get_money/contract.py:19
+    // self.oracle_pk = new_key
+    bytec_2 // "oracle_pk"
+    frame_dig -1
+    app_global_put
+    retsub
+
+
+// smart_contracts.get_money.contract.GetMoney.set_asset(asset_id: uint64) -> void:
+set_asset:
+    // smart_contracts/get_money/contract.py:21-23
+    // # set the asset (ASA) id
+    // @abimethod
+    // def set_asset(self, asset_id: UInt64) -> None:
+    proto 1 0
+    // smart_contracts/get_money/contract.py:24
+    // assert Txn.sender == self.admin
+    txn Sender
+    intc_0 // 0
+    bytec_0 // "admin"
+    app_global_get_ex
+    assert // check self.admin exists
+    ==
+    assert
+    // smart_contracts/get_money/contract.py:25
+    // self.asset_id = asset_id
+    bytec_1 // "asset_id"
+    frame_dig -1
+    app_global_put
+    retsub
+
+
+// smart_contracts.get_money.contract.GetMoney.sweep(receiver: bytes) -> void:
+sweep:
+    // smart_contracts/get_money/contract.py:27-29
+    // # clear remaining funds from the contract
+    // @abimethod
+    // def sweep(self, receiver: Account) -> None:
+    proto 1 0
+    // smart_contracts/get_money/contract.py:30
+    // assert Txn.sender == self.admin
+    txn Sender
+    intc_0 // 0
+    bytec_0 // "admin"
+    app_global_get_ex
+    assert // check self.admin exists
+    ==
+    assert
+    // smart_contracts/get_money/contract.py:31-32
+    // # Close out the contract's ASA holding to receiver (no need to read balance)
+    // asset = Asset(self.asset_id)
+    intc_0 // 0
+    bytec_1 // "asset_id"
+    app_global_get_ex
+    assert // check self.asset_id exists
+    // smart_contracts/get_money/contract.py:33-38
+    // itxn.AssetTransfer(
+    //     xfer_asset=asset,
+    //     asset_amount=0,
+    //     asset_close_to=receiver,
+    //     asset_receiver=receiver,
+    // ).submit()
+    itxn_begin
+    frame_dig -1
+    itxn_field AssetReceiver
+    frame_dig -1
+    itxn_field AssetCloseTo
+    // smart_contracts/get_money/contract.py:35
+    // asset_amount=0,
+    intc_0 // 0
+    itxn_field AssetAmount
+    itxn_field XferAsset
+    // smart_contracts/get_money/contract.py:33
+    // itxn.AssetTransfer(
+    intc_2 // axfer
+    itxn_field TypeEnum
+    intc_0 // 0
+    itxn_field Fee
+    // smart_contracts/get_money/contract.py:33-38
+    // itxn.AssetTransfer(
+    //     xfer_asset=asset,
+    //     asset_amount=0,
+    //     asset_close_to=receiver,
+    //     asset_receiver=receiver,
+    // ).submit()
+    itxn_submit
+    retsub
+
+
+// smart_contracts.get_money.contract.GetMoney.release_simple(recipient: bytes, amount: uint64) -> void:
+release_simple:
+    // smart_contracts/get_money/contract.py:40-42
+    // # simple admin-controlled release for demo/hackathon
+    // @abimethod
+    // def release_simple(self, recipient: Account, amount: UInt64) -> None:
+    proto 2 0
+    // smart_contracts/get_money/contract.py:43
+    // assert Txn.sender == self.admin
+    txn Sender
+    intc_0 // 0
+    bytec_0 // "admin"
+    app_global_get_ex
+    assert // check self.admin exists
+    ==
+    assert
+    // smart_contracts/get_money/contract.py:44
+    // asset = Asset(self.asset_id)
+    intc_0 // 0
+    bytec_1 // "asset_id"
+    app_global_get_ex
+    assert // check self.asset_id exists
+    // smart_contracts/get_money/contract.py:45-49
+    // itxn.AssetTransfer(
+    //     xfer_asset=asset,
+    //     asset_amount=amount,
+    //     asset_receiver=recipient,
+    // ).submit()
+    itxn_begin
+    frame_dig -2
+    itxn_field AssetReceiver
+    frame_dig -1
+    itxn_field AssetAmount
+    itxn_field XferAsset
+    // smart_contracts/get_money/contract.py:45
+    // itxn.AssetTransfer(
+    intc_2 // axfer
+    itxn_field TypeEnum
+    intc_0 // 0
+    itxn_field Fee
+    // smart_contracts/get_money/contract.py:45-49
+    // itxn.AssetTransfer(
+    //     xfer_asset=asset,
+    //     asset_amount=amount,
+    //     asset_receiver=recipient,
+    // ).submit()
+    itxn_submit
+    retsub
+
+
+// smart_contracts.get_money.contract.GetMoney.opt_in_asset() -> void:
+opt_in_asset:
+    // smart_contracts/get_money/contract.py:54
+    // assert Txn.sender == self.admin
+    txn Sender
+    intc_0 // 0
+    bytec_0 // "admin"
+    app_global_get_ex
+    assert // check self.admin exists
+    ==
+    assert
+    // smart_contracts/get_money/contract.py:55
+    // asset = Asset(self.asset_id)
+    intc_0 // 0
+    bytec_1 // "asset_id"
+    app_global_get_ex
+    assert // check self.asset_id exists
+    // smart_contracts/get_money/contract.py:56-60
+    // itxn.AssetTransfer(
+    //     xfer_asset=asset,
+    //     asset_amount=0,
+    //     asset_receiver=Global.current_application_address,
+    // ).submit()
+    itxn_begin
+    // smart_contracts/get_money/contract.py:59
+    // asset_receiver=Global.current_application_address,
+    global CurrentApplicationAddress
+    itxn_field AssetReceiver
+    // smart_contracts/get_money/contract.py:58
+    // asset_amount=0,
+    intc_0 // 0
+    itxn_field AssetAmount
+    itxn_field XferAsset
+    // smart_contracts/get_money/contract.py:56
+    // itxn.AssetTransfer(
+    intc_2 // axfer
+    itxn_field TypeEnum
+    intc_0 // 0
+    itxn_field Fee
+    // smart_contracts/get_money/contract.py:56-60
+    // itxn.AssetTransfer(
+    //     xfer_asset=asset,
+    //     asset_amount=0,
+    //     asset_receiver=Global.current_application_address,
+    // ).submit()
+    itxn_submit
+    retsub
