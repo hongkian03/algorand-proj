@@ -12,3 +12,4 @@ https://github.com/user-attachments/assets/f6372671-3048-4430-bf75-b7852634a157
 <img width="1800" height="1169" alt="Screenshot 2025-09-07 at 12 12 16 PM" src="https://github.com/user-attachments/assets/85b3e013-a254-424a-a08e-d4339534a467" />
 
 ## How It Works
+Vimeo - <a href = "https://vimeo.com/1116571296?share=copy">Vimeo link to video</a>
