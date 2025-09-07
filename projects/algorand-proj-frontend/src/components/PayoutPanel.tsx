@@ -11,11 +11,12 @@ interface PayoutPanelProps {
   openModal: boolean
   setModalState: (value: boolean) => void
   onSuccess?: (grossAmount: number) => void
+  onRequireWallet?: () => void
 }
 
 const DEFAULT_FEE_BPS = 150 // 1.5%
 
-const PayoutPanel = ({ openModal, setModalState, onSuccess }: PayoutPanelProps) => {
+const PayoutPanel = ({ openModal, setModalState, onSuccess, onRequireWallet }: PayoutPanelProps) => {
   const { transactionSigner, activeAddress } = useWallet()
   const { enqueueSnackbar } = useSnackbar()
 
@@ -63,7 +64,7 @@ const PayoutPanel = ({ openModal, setModalState, onSuccess }: PayoutPanelProps) 
 
   const handleEnableAsset = async () => {
     if (!transactionSigner || !activeAddress) {
-      enqueueSnackbar('Please connect wallet first', { variant: 'warning' })
+      onRequireWallet?.()
       return
     }
     const id = Number(assetId)
@@ -84,7 +85,7 @@ const PayoutPanel = ({ openModal, setModalState, onSuccess }: PayoutPanelProps) 
 
   const handlePayout = async () => {
     if (!transactionSigner || !activeAddress) {
-      enqueueSnackbar('Please connect wallet first', { variant: 'warning' })
+      onRequireWallet?.()
       return
     }
     if (!isValidAssetId || !isValidAmount) {

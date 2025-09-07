@@ -23,6 +23,7 @@ const Home: React.FC<HomeProps> = () => {
   const [openAdsensePage, setOpenAdsensePage] = useState<boolean>(true)
   const [demoEarnings, setDemoEarnings] = useState<number>(1000)
   const { activeAddress } = useWallet()
+  const isConnected = Boolean(activeAddress)
 
   const toggleWalletModal = () => {
     setOpenWalletModal(!openWalletModal)
@@ -65,13 +66,21 @@ const Home: React.FC<HomeProps> = () => {
         <AdsensePage
           open={openAdsensePage}
           onClose={() => setOpenAdsensePage(false)}
-          onPayout={() => { setOpenPayoutModal(true) }}
+          onPayout={() => {
+            if (!isConnected) {
+              setOpenWalletModal(true)
+              return
+            }
+            setOpenPayoutModal(true)
+          }}
           earnings={demoEarnings}
         />
+        <ConnectWallet openModal={openWalletModal} closeModal={() => setOpenWalletModal(false)} />
         <PayoutPanel
           openModal={openPayoutModal}
           setModalState={(v) => setOpenPayoutModal(v)}
           onSuccess={(gross) => setDemoEarnings((v) => Math.max(0, v - gross))}
+          onRequireWallet={() => setOpenWalletModal(true)}
         />
       </>
     )
@@ -141,7 +150,14 @@ const Home: React.FC<HomeProps> = () => {
           <AdsenseCompanion
             openModal={openAdsenseModal}
             setModalState={setOpenAdsenseModal}
-            onInstantPayout={() => { setOpenAdsenseModal(false); setOpenPayoutModal(true) }}
+            onInstantPayout={() => {
+              setOpenAdsenseModal(false)
+              if (!isConnected) {
+                setOpenWalletModal(true)
+                return
+              }
+              setOpenPayoutModal(true)
+            }}
           />
           {/* AdSense page rendered as main when openAdsensePage=true */}
         </div>
