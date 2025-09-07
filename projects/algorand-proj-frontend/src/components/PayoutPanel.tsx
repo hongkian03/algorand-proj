@@ -10,11 +10,12 @@ import { getVaultAPI } from '../services/VaultService'
 interface PayoutPanelProps {
   openModal: boolean
   setModalState: (value: boolean) => void
+  onSuccess?: (grossAmount: number) => void
 }
 
 const DEFAULT_FEE_BPS = 150 // 1.5%
 
-const PayoutPanel = ({ openModal, setModalState }: PayoutPanelProps) => {
+const PayoutPanel = ({ openModal, setModalState, onSuccess }: PayoutPanelProps) => {
   const { transactionSigner, activeAddress } = useWallet()
   const { enqueueSnackbar } = useSnackbar()
 
@@ -22,6 +23,7 @@ const PayoutPanel = ({ openModal, setModalState }: PayoutPanelProps) => {
   const [amount, setAmount] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(false)
   const [optedIn, setOptedIn] = useState<boolean>(true)
+  const [showAdvanced, setShowAdvanced] = useState<boolean>(false)
 
   const algodConfig = getAlgodConfigFromViteEnvironment()
   const algorand = useMemo(() => AlgorandClient.fromConfig({ algodConfig }), [algodConfig])
@@ -30,8 +32,8 @@ const PayoutPanel = ({ openModal, setModalState }: PayoutPanelProps) => {
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const env: any = import.meta.env
-    const envAsset = env?.VITE_USDC_ASSET_ID || env?.VITE_STABLECOIN_ASSET_ID
-    if (envAsset && !assetId) setAssetId(String(envAsset))
+    const envAsset = env?.VITE_USDC_ASSET_ID || env?.VITE_STABLECOIN_ASSET_ID || '745492577'
+    if (!assetId) setAssetId(String(envAsset))
   }, [assetId])
 
   // Track opt-in status for the current asset/account
@@ -140,6 +142,11 @@ const PayoutPanel = ({ openModal, setModalState }: PayoutPanelProps) => {
         const result = await transferAsset(algorand, transactionSigner, activeAddress, activeAddress, id, baseUnits)
         enqueueSnackbar(`Payout sent (net): ${result.txIds[0]}`, { variant: 'success' })
       }
+      // Inform parent about gross payout for demo earnings update
+      try {
+        const gross = Number(amount)
+        if (!Number.isNaN(gross) && gross > 0) onSuccess?.(gross)
+      } catch { }
       setAmount('')
     } catch (e) {
       enqueueSnackbar(`Failed payout: ${e instanceof Error ? e.message : String(e)}`, { variant: 'error' })
@@ -148,17 +155,19 @@ const PayoutPanel = ({ openModal, setModalState }: PayoutPanelProps) => {
   }
 
   return (
-    <dialog id="payout_panel_modal" className={`modal ${openModal ? 'modal-open' : ''} bg-slate-200`} style={{ display: openModal ? 'block' : 'none' }}>
-      <form method="dialog" className="modal-box">
+    <dialog id="payout_panel_modal" className={`modal ${openModal ? 'modal-open' : ''}`}>
+      <form method="dialog" className="modal-box payday-modal">
         <h3 className="font-bold text-xl">Instant Payout (Test Demo)</h3>
         <p className="text-sm opacity-70 mb-2">Fee: {(feePercent * 100).toFixed(2)}%</p>
-        <input
-          type="text"
-          placeholder="Asset ID (e.g., your TestUSDC)"
-          className="input input-bordered w-full mb-2"
-          value={assetId}
-          onChange={(e) => setAssetId(e.target.value)}
-        />
+        {showAdvanced && (
+          <input
+            type="text"
+            placeholder="Asset ID (USDC)"
+            className="input input-bordered w-full mb-2"
+            value={assetId}
+            onChange={(e) => setAssetId(e.target.value)}
+          />
+        )}
         <input
           type="number"
           min="0"
@@ -172,6 +181,15 @@ const PayoutPanel = ({ openModal, setModalState }: PayoutPanelProps) => {
           <div>Fee: {isValidAmount ? feeAmount.toFixed(6) : '-'}</div>
           <div>Net to receive: {isValidAmount ? netAmount.toFixed(6) : '-'}</div>
         </div>
+        <div className="mb-2 flex items-center justify-end">
+          <button
+            type="button"
+            className="btn btn-ghost btn-xs"
+            onClick={() => setShowAdvanced(!showAdvanced)}
+          >
+            {showAdvanced ? 'Hide Advanced' : 'Advanced'}
+          </button>
+        </div>
         {isValidAssetId && !optedIn && (
           <div className="alert alert-info mb-2 text-sm">
             <div className="flex items-center justify-between w-full">
@@ -184,7 +202,7 @@ const PayoutPanel = ({ openModal, setModalState }: PayoutPanelProps) => {
         )}
         <div className="modal-action grid">
           <button type="button" className="btn" onClick={() => setModalState(!openModal)}>Close</button>
-          <button type="button" className={`btn ${(isValidAddress && isValidAssetId && isValidAmount) ? '' : 'btn-disabled'}`} onClick={handlePayout}>
+          <button type="button" className={`btn btn-primary ${(isValidAddress && isValidAssetId && isValidAmount) ? '' : 'btn-disabled'}`} onClick={handlePayout}>
             {loading ? <span className="loading loading-spinner" /> : 'Request Payout'}
           </button>
         </div>

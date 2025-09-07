@@ -97,6 +97,11 @@ const Dashboard = ({ openModal, setModalState }: DashboardProps) => {
 
     useEffect(() => {
         if (openModal) {
+            // Prefill asset from env when opening
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const env: any = import.meta.env
+            const envAsset = env?.VITE_USDC_ASSET_ID || env?.VITE_STABLECOIN_ASSET_ID
+            if (envAsset && !assetId) setAssetId(String(envAsset))
             void load()
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps

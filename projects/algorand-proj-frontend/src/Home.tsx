@@ -7,6 +7,8 @@ import AppCalls from './components/AppCalls'
 import SendAsa from './components/SendAsa'
 import PayoutPanel from './components/PayoutPanel'
 import Dashboard from './components/Dashboard'
+import AdsenseCompanion from './components/AdsenseCompanion'
+import AdsensePage from './components/AdsensePage'
 
 interface HomeProps { }
 
@@ -17,6 +19,9 @@ const Home: React.FC<HomeProps> = () => {
   const [openAsaModal, setOpenAsaModal] = useState<boolean>(false)
   const [openPayoutModal, setOpenPayoutModal] = useState<boolean>(false)
   const [openDashboardModal, setOpenDashboardModal] = useState<boolean>(false)
+  const [openAdsenseModal, setOpenAdsenseModal] = useState<boolean>(false)
+  const [openAdsensePage, setOpenAdsensePage] = useState<boolean>(true)
+  const [demoEarnings, setDemoEarnings] = useState<number>(1000)
   const { activeAddress } = useWallet()
 
   const toggleWalletModal = () => {
@@ -43,27 +48,47 @@ const Home: React.FC<HomeProps> = () => {
     setOpenDashboardModal(!openDashboardModal)
   }
 
+  if (openAdsensePage) {
+    // Correctly reduce demo earnings by the gross amount from the modal
+    const handler = (e: Event) => {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const detail = (e as any).detail as { gross?: number }
+        const gross = Number(detail?.gross ?? 0)
+        if (gross > 0) setDemoEarnings((v) => Math.max(0, v - gross))
+      } catch { }
+    }
+    window.removeEventListener('payday:payout', handler as EventListener)
+    window.addEventListener('payday:payout', handler as EventListener)
+    return (
+      <>
+        <AdsensePage
+          open={openAdsensePage}
+          onClose={() => setOpenAdsensePage(false)}
+          onPayout={() => { setOpenPayoutModal(true) }}
+          earnings={demoEarnings}
+        />
+        <PayoutPanel
+          openModal={openPayoutModal}
+          setModalState={(v) => setOpenPayoutModal(v)}
+          onSuccess={(gross) => setDemoEarnings((v) => Math.max(0, v - gross))}
+        />
+      </>
+    )
+  }
+
   return (
-    <div className="hero min-h-screen bg-teal-400">
-      <div className="hero-content text-center rounded-lg p-6 max-w-md bg-white mx-auto">
+    <div className="hero min-h-screen">
+      <div className="hero-content text-center rounded-lg p-6 max-w-md mx-auto">
         <div className="max-w-md">
           <h1 className="text-4xl">
-            Welcome to <div className="font-bold">AlgoKit 🙂</div>
+            Welcome to <div className="font-bold">PayDay</div>
           </h1>
           <p className="py-6">
-            This starter has been generated using official AlgoKit React template. Refer to the resource below for next steps.
+            Instant AdSense payouts in USDC on Algorand TestNet.
           </p>
 
           <div className="grid">
-            <a
-              data-test-id="getting-started"
-              className="btn btn-primary m-2"
-              target="_blank"
-              href="https://github.com/algorandfoundation/algokit-cli"
-            >
-              Getting started
-            </a>
-
             <div className="divider" />
             <button data-test-id="connect-wallet" className="btn m-2" onClick={toggleWalletModal}>
               Wallet Connection
@@ -82,6 +107,13 @@ const Home: React.FC<HomeProps> = () => {
             )}
 
             {activeAddress && (
+              <>
+                <button className="btn m-2" onClick={() => setOpenAdsenseModal(true)}>AdSense Companion (modal)</button>
+                <button className="btn m-2" onClick={() => setOpenAdsensePage(true)}>AdSense Companion (page)</button>
+              </>
+            )}
+
+            {activeAddress && (
               <button data-test-id="appcalls-demo" className="btn m-2" onClick={toggleAppCallsModal}>
                 Contract Interactions Demo
               </button>
@@ -95,7 +127,7 @@ const Home: React.FC<HomeProps> = () => {
 
             {activeAddress && (
               <button data-test-id="instant-payout" className="btn btn-primary m-2" onClick={togglePayoutModal}>
-                Instant Payout (Demo)
+                Instant Payout
               </button>
             )}
           </div>
@@ -106,6 +138,12 @@ const Home: React.FC<HomeProps> = () => {
           <SendAsa openModal={openAsaModal} setModalState={setOpenAsaModal} />
           <PayoutPanel openModal={openPayoutModal} setModalState={setOpenPayoutModal} />
           <Dashboard openModal={openDashboardModal} setModalState={setOpenDashboardModal} />
+          <AdsenseCompanion
+            openModal={openAdsenseModal}
+            setModalState={setOpenAdsenseModal}
+            onInstantPayout={() => { setOpenAdsenseModal(false); setOpenPayoutModal(true) }}
+          />
+          {/* AdSense page rendered as main when openAdsensePage=true */}
         </div>
       </div>
     </div>
