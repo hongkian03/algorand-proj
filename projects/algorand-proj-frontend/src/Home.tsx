@@ -4,13 +4,19 @@ import React, { useState } from 'react'
 import ConnectWallet from './components/ConnectWallet'
 import Transact from './components/Transact'
 import AppCalls from './components/AppCalls'
+import SendAsa from './components/SendAsa'
+import PayoutPanel from './components/PayoutPanel'
+import Dashboard from './components/Dashboard'
 
-interface HomeProps {}
+interface HomeProps { }
 
 const Home: React.FC<HomeProps> = () => {
   const [openWalletModal, setOpenWalletModal] = useState<boolean>(false)
   const [openDemoModal, setOpenDemoModal] = useState<boolean>(false)
   const [appCallsDemoModal, setAppCallsDemoModal] = useState<boolean>(false)
+  const [openAsaModal, setOpenAsaModal] = useState<boolean>(false)
+  const [openPayoutModal, setOpenPayoutModal] = useState<boolean>(false)
+  const [openDashboardModal, setOpenDashboardModal] = useState<boolean>(false)
   const { activeAddress } = useWallet()
 
   const toggleWalletModal = () => {
@@ -23,6 +29,18 @@ const Home: React.FC<HomeProps> = () => {
 
   const toggleAppCallsModal = () => {
     setAppCallsDemoModal(!appCallsDemoModal)
+  }
+
+  const toggleAsaModal = () => {
+    setOpenAsaModal(!openAsaModal)
+  }
+
+  const togglePayoutModal = () => {
+    setOpenPayoutModal(!openPayoutModal)
+  }
+
+  const toggleDashboardModal = () => {
+    setOpenDashboardModal(!openDashboardModal)
   }
 
   return (
@@ -52,6 +70,12 @@ const Home: React.FC<HomeProps> = () => {
             </button>
 
             {activeAddress && (
+              <button data-test-id="dashboard" className="btn m-2" onClick={toggleDashboardModal}>
+                Dashboard
+              </button>
+            )}
+
+            {activeAddress && (
               <button data-test-id="transactions-demo" className="btn m-2" onClick={toggleDemoModal}>
                 Transactions Demo
               </button>
@@ -62,11 +86,26 @@ const Home: React.FC<HomeProps> = () => {
                 Contract Interactions Demo
               </button>
             )}
+
+            {activeAddress && (
+              <button data-test-id="asa-transfer-demo" className="btn m-2" onClick={toggleAsaModal}>
+                ASA Transfer (USDC)
+              </button>
+            )}
+
+            {activeAddress && (
+              <button data-test-id="instant-payout" className="btn btn-primary m-2" onClick={togglePayoutModal}>
+                Instant Payout (Demo)
+              </button>
+            )}
           </div>
 
           <ConnectWallet openModal={openWalletModal} closeModal={toggleWalletModal} />
           <Transact openModal={openDemoModal} setModalState={setOpenDemoModal} />
           <AppCalls openModal={appCallsDemoModal} setModalState={setAppCallsDemoModal} />
+          <SendAsa openModal={openAsaModal} setModalState={setOpenAsaModal} />
+          <PayoutPanel openModal={openPayoutModal} setModalState={setOpenPayoutModal} />
+          <Dashboard openModal={openDashboardModal} setModalState={setOpenDashboardModal} />
         </div>
       </div>
     </div>
